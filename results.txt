@@ -1,0 +1,9 @@
+Java: 21.0.12.1
+Order: eager, lazy
+First 52, eager: 0 ms
+First 52, lazy:  0 ms
+PASS: 52 distinct lazy cards; both caches reuse instances.
+Cached round 1, 200000 x 52: eager=33 ms, lazy=34 ms
+Cached round 2, 200000 x 52: eager=31 ms, lazy=31 ms
+Cached round 3, 200000 x 52: eager=31 ms, lazy=31 ms
+Cached round 4, 200000 x 52: eager=31 ms, lazy=32 ms
