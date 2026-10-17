@@ -1,6 +1,4 @@
 # Exercise 8
-Đề có nhắc Exercise 9, nhưng bài về flyweight là Exercise 7 nên bài này làm tiếp từ Exercise 7.
-
 ## Cách chạy
 
 Cần cài JDK. Mở terminal tại thư mục chứa file rồi chạy:
