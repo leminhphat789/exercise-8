@@ -3,7 +3,7 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Objects;
 
-/** Standalone Exercise 8 solution. Java 8+, single-threaded experiment. */
+/** Bài thực hành Exercise 8, chạy độc lập với Java 8 trở lên và dùng một luồng. */
 public class Exercise8 {
     public enum Rank {
         ACE, TWO, THREE, FOUR, FIVE, SIX, SEVEN,
@@ -20,7 +20,7 @@ public class Exercise8 {
         return suit.ordinal() * RANKS.length + rank.ordinal();
     }
 
-    // Eager: initialization occurs on the first active use of this class.
+    // Eager: tạo sẵn 52 lá bài khi lớp được khởi tạo ở lần sử dụng đầu tiên.
     public static final class EagerCard {
         private final Rank rank;
         private final Suit suit;
@@ -43,7 +43,7 @@ public class Exercise8 {
         public Suit suit() { return suit; }
     }
 
-    // Lazy: the map starts empty; each distinct card is created on demand.
+    // Lazy: Map ban đầu rỗng, chỉ tạo lá bài khi được yêu cầu.
     public static final class Card implements Comparable<Card> {
         private final Rank rank;
         private final Suit suit;
@@ -77,7 +77,7 @@ public class Exercise8 {
         for (int i = 0; i < repetitions; i++) {
             for (Suit suit : SUITS) {
                 for (Rank rank : RANKS) {
-                    // Make returned objects observable; adds overhead to BOTH cases.
+                    // Lưu đối tượng trả về vào biến volatile; thao tác này thêm chi phí cho cả hai cách.
                     if (lazy) sink = Card.get(rank, suit);
                     else sink = EagerCard.get(rank, suit);
                 }
@@ -108,7 +108,7 @@ public class Exercise8 {
 
     public static void main(String[] args) {
         boolean lazyFirst = args.length > 0 && args[0].equals("lazy-first");
-        // Do not touch either cache before these measurements.
+        // Chưa sử dụng cache của cả hai lớp trước các phép đo này.
         long first = obtainAll(lazyFirst, 1);
         long second = obtainAll(!lazyFirst, 1);
         System.out.println("Java: " + System.getProperty("java.version"));
@@ -117,7 +117,7 @@ public class Exercise8 {
         System.out.println("First 52, lazy:  " + (lazyFirst ? first : second) + " ms");
         verify();
         System.out.println("PASS: 52 distinct lazy cards; both caches reuse instances.");
-        // Supplemental measurement: cached lookups ONLY, not repeated creation.
+        // Đo bổ sung: chỉ lấy lại lá bài trong cache, không tạo mới qua mỗi lượt.
         obtainAll(false, 20000);
         obtainAll(true, 20000);
         int repetitions = 200000;
