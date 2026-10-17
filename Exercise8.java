@@ -3,7 +3,6 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Objects;
 
-/** Bài thực hành Exercise 8, chạy độc lập với Java 8 trở lên và dùng một luồng. */
 public class Exercise8 {
     public enum Rank {
         ACE, TWO, THREE, FOUR, FIVE, SIX, SEVEN,
