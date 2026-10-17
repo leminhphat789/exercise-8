@@ -1,16 +1,14 @@
 # Exercise 8 - Lazy Card Flyweights
 
-Bài thực hành Java so sánh hai cách tạo đối tượng dùng chung (Flyweight): eager initialization và lazy initialization.
+Bài tập so sánh cách tạo sẵn 52 lá bài (eager) và chỉ tạo khi cần dùng (lazy).
 
-## Đề bài và cách hiểu
+Đề bài: [Exercise 8 - DesignBook](https://github.com/prmr/DesignBook/blob/master/exercises/e-chapter4.md).
 
-Nguồn: [DesignBook, Chapter 4, Exercise 8](https://github.com/prmr/DesignBook/blob/master/exercises/e-chapter4.md), Martin P. Robillard.
+Đề có nhắc Exercise 9, nhưng bài về flyweight là Exercise 7 nên bài này làm tiếp từ Exercise 7.
 
-Đề yêu cầu chuyển sang tạo card flyweight theo nhu cầu, dùng `System.currentTimeMillis()` đo thời gian lấy đủ 52 lá bài và rút ra kết luận. Tham chiếu "Exercise 9" có vẻ là lỗi đánh số: Exercise 7 mới yêu cầu flyweight khởi tạo trước bằng Map; Exercise 9 nói về Singleton. Lời giải này tiếp nối yêu cầu của Exercise 7 và được viết thành chương trình độc lập.
+## Cách chạy
 
-## Chạy chương trình
-
-Yêu cầu JDK 8 trở lên. Tại thư mục chứa mã nguồn:
+Cần cài JDK 8 trở lên. Mở terminal tại thư mục chứa file rồi chạy:
 
 ```sh
 javac -encoding UTF-8 Exercise8.java
@@ -18,17 +16,13 @@ java Exercise8
 java Exercise8 lazy-first
 ```
 
-Mỗi lệnh `java` tạo một JVM mới, giúp đo lần sử dụng đầu tiên với cache chưa được khởi tạo. Lệnh thứ hai đảo thứ tự eager/lazy. Mã đã được biên dịch với `javac --release 8` và chạy trên Java 21.0.12.1.
+Lệnh cuối chạy lại chương trình với lazy được đo trước.
 
-## Giải pháp
+## Cách làm
 
-- `EagerCard`: khối static tạo trước đủ 52 đối tượng khi lớp được khởi tạo. Sau đó `get()` chỉ tra cứu Map.
-- `Card`: Map ban đầu rỗng. `get()` tra cứu, chỉ tạo và lưu đối tượng nếu chưa có.
-- Khóa `suit.ordinal() * 13 + rank.ordinal()` ánh xạ duy nhất mỗi cặp hạng-chất vào một số từ 0 đến 51.
-- Constructor private ngăn việc tạo lá bài ngoài factory; thuộc tính final giữ trạng thái bất biến.
-- Hai lần gọi với cùng hạng và chất trả về cùng một đối tượng.
+EagerCard tạo sẵn 52 lá bài trong khối static và lưu vào Map.
 
-Phần cốt lõi của lazy initialization:
+Card dùng lazy: ban đầu Map rỗng. Khi gọi get(), nếu lá bài đã có thì trả về đối tượng cũ. Nếu chưa có thì tạo mới, lưu vào Map rồi trả về.
 
 ```java
 public static Card get(Rank rank, Suit suit) {
@@ -42,34 +36,34 @@ public static Card get(Rank rank, Suit suit) {
 }
 ```
 
-Đây là thực hành một luồng. Nếu dùng nhiều luồng, phải đồng bộ hóa toàn bộ thao tác kiểm tra-tạo-lưu để bảo đảm tính duy nhất.
+Khóa được tính bằng suit.ordinal() * 13 + rank.ordinal(), nên mỗi cặp hạng và chất có một khóa riêng. Constructor private để lấy lá bài qua get(). Các thuộc tính final giúp lá bài không bị thay đổi.
 
-## Phương pháp đo
+Hai lần lấy cùng một lá sẽ nhận cùng một đối tượng. Bản này chạy một luồng; nếu dùng nhiều luồng thì cần đồng bộ thao tác lấy và tạo lá bài.
 
-Đặt thời điểm bắt đầu trước lần gọi factory đầu tiên, rồi duyệt 4 chất x 13 hạng. Cả hai cách đều tính chi phí khởi tạo lớp/cache trong lần đo đầu; không tạo trước cache eager ngoài vùng đo.
+## Kết quả chạy
 
-Sau đó chương trình kiểm tra cache có 52 phần tử, các cặp hạng-chất khác nhau của lazy không dùng nhầm cùng đối tượng, và cả hai factory tái sử dụng đối tượng.
+Dùng System.currentTimeMillis() đo từ trước lần gọi get() đầu tiên đến khi lấy đủ 52 lá, có tính cả thời gian khởi tạo cache.
 
-Phép đo bổ sung làm nóng mỗi cách qua 20.000 lượt, rồi đo bốn vòng, mỗi vòng 200.000 lượt lấy đủ 52 lá; đảo thứ tự giữa các vòng. Phần này **chỉ đo tra cứu cache đã đầy**, không đo tạo lại đối tượng. Biến volatile giữ kết quả quan sát được nhưng cũng thêm chi phí cho cả hai cách.
+Kết quả ghi lại trên Java 21.0.12.1:
 
-## Kết quả thực tế
+- Chạy eager trước: eager 0 ms, lazy 0 ms.
+- Chạy lazy trước trong JVM mới: eager 0 ms, lazy 4 ms.
 
-| Thứ tự trong JVM mới | Eager: lần đầu lấy 52 lá | Lazy: lần đầu lấy 52 lá |
-| --- | ---: | ---: |
-| Eager trước | 0 ms | 0 ms |
-| Lazy trước | 0 ms | 4 ms |
+Sau khi cache đã đầy, chương trình làm nóng mỗi cách 20.000 lượt rồi đo thêm 4 vòng. Mỗi vòng lấy đủ 52 lá 200.000 lần và đổi thứ tự đo giữa các vòng:
 
-| Tiến trình | Eager: 200.000 x 52 lượt, khoảng qua 4 vòng | Lazy: cùng số lượt |
-| --- | ---: | ---: |
-| Eager chạy trước ban đầu | 31-33 ms | 31-34 ms |
-| Lazy chạy trước ban đầu | 38-45 ms | 36-43 ms |
+- Lần chạy eager trước ban đầu: eager 31-33 ms, lazy 31-34 ms.
+- Lần chạy lazy trước ban đầu: eager 38-45 ms, lazy 36-43 ms.
 
-Kiểm tra tính đúng đắn đều PASS. Xem log gốc trong [results.txt](results.txt) và [results-lazy-first.txt](results-lazy-first.txt).
+Phần đo thêm chỉ lấy lại lá bài đã có, không tạo mới mỗi lượt. Vòng lặp có ghi kết quả vào biến volatile nên thời gian cũng gồm chi phí này.
 
-Số đo 0 ms không có nghĩa là không mất thời gian. Theo [Oracle](https://docs.oracle.com/javase/8/docs/api/java/lang/System.html#currentTimeMillis--), đơn vị trả về là mili giây nhưng độ phân giải thực tế phụ thuộc hệ điều hành. Kết quả còn chịu ảnh hưởng của việc nạp lớp, JIT, lịch chạy hệ điều hành và chi phí vòng lặp. Đây là phép đo minh họa cho bài tập, chưa đủ để kết luận cách nào nhanh hơn.
+Kiểm tra tính duy nhất và tái sử dụng đối tượng đều PASS. Kết quả in từ chương trình được lưu trong [results.txt](results.txt) và [results-lazy-first.txt](results-lazy-first.txt).
+
+0 ms không có nghĩa là không mất thời gian. Lấy 52 lá bài quá nhanh nên khó thấy chênh lệch bằng đồng hồ mili giây. Độ phân giải của currentTimeMillis() còn tùy hệ điều hành, theo [tài liệu Oracle](https://docs.oracle.com/javase/8/docs/api/java/lang/System.html#currentTimeMillis--). Kết quả có thể khác khi chạy lại.
 
 ## Kết luận
 
-Khi cần đủ 52 lá, cả hai cách đều tạo và lưu 52 đối tượng, nên lazy không tiết kiệm số đối tượng ở trạng thái cuối. Eager trả chi phí tạo ngay khi lớp khởi tạo; lazy dời chi phí sang lần yêu cầu đầu tiên của từng lá.
+Nếu dùng đủ 52 lá thì cả hai cách đều tạo 52 đối tượng. Lazy chỉ dời việc tạo sang lúc cần, không giảm số đối tượng cuối cùng.
 
-Lazy hữu ích khi chỉ dùng một phần bộ bài: các lá chưa được yêu cầu chưa cần tạo. Với bộ bài nhỏ và thường dùng đầy đủ, eager đơn giản và phù hợp. Chọn chiến lược dựa trên nhu cầu sử dụng và thời điểm trả chi phí khởi tạo, không dựa vào chênh lệch vài mili giây trong phép đo nhỏ này.
+Nếu chỉ dùng vài lá thì lazy có lợi vì không phải tạo những lá còn lại. Nếu luôn dùng cả bộ bài thì eager đơn giản và phù hợp.
+
+Các số đo trên chưa đủ để kết luận cách nào nhanh hơn.
