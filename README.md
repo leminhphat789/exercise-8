@@ -48,4 +48,5 @@ Sau khi cache đã đầy, chương trình làm nóng mỗi cách 20.000 lượt
 Phần đo thêm chỉ lấy lại lá bài đã có, không tạo mới mỗi lượt. Vòng lặp có ghi kết quả vào biến volatile nên thời gian cũng gồm chi phí này.
 
 Kiểm tra tính duy nhất và tái sử dụng đối tượng đều PASS. Kết quả in từ chương trình được lưu trong [results.txt](results.txt) và [results-lazy-first.txt](results-lazy-first.txt).
-
+- What do you conclude?
+- Khi lấy đủ 52 lá, cả eager và lazy đều tạo 52 đối tượg nên lazy không tiết kiệm bộ nhớ ở trạng thái cuối.Lazy có lợi khi chỉ dùng một phần bộ bài vì chỉ tạo những lá được yêu cầu.Với 52 đối tượng nhỏ ,thời gian đo bằng System.currentTimeMillis() chưa đủ chính xác để kết luận cách nào nhanh hơn.
